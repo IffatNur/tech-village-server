@@ -105,7 +105,6 @@ async function run(){
             const query = {email:email};
             const result= await userCollection.findOne(query);
             res.send({isUser: result?.role});
-            console.log({isUser: result?.role});
         })
 
         app.post('/booking',verifyJWT, async(req,res) =>{
@@ -144,6 +143,13 @@ async function run(){
         app.get("/allbuyer", verifyJWT,verifyAdmin, async (req, res) => {
           const query = { role: "buyer" };
           const result = await userCollection.find(query).toArray();
+          res.send(result);
+        });
+
+        app.delete("/user/:id", verifyJWT,verifyAdmin, async (req, res) => {
+          const id = req.params.id;
+          const query = { _id: ObjectId(id) };
+          const result = await userCollection.deleteOne(query);
           res.send(result);
         });
 
