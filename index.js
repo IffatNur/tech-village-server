@@ -19,6 +19,8 @@ async function run(){
     try{
         const categoryCollection = client.db("techVIllage").collection("categories");
         const productCollection = client.db("techVIllage").collection("products");
+        const userCollection = client.db("techVIllage").collection("users");
+        const bookingCollection = client.db("techVIllage").collection("bookings");
 
         app.get('/category', async(req,res)=>{
             const query = {};
@@ -28,9 +30,24 @@ async function run(){
 
         app.get('/category/:id', async(req,res)=>{
             const id = req.params.id;
-            const query = {category_id: id};
-            const result = await productCollection.find(query).toArray();
+            const query = {_id: ObjectId(id)};
+            const findCategory = await categoryCollection.findOne(query);
+            const category = findCategory.category_title;
+            const categoryQuery = {category_title: category};
+            const result = await productCollection.find(categoryQuery).toArray();
             res.send(result); 
+        })
+
+        app.post('/users', async(req,res) =>{
+            const query = req.body;
+            const result = await userCollection.insertOne(query);
+            res.send(result);
+        })
+
+        app.post('/booking', async(req,res) =>{
+            const query = req.body;
+            const result = await bookingCollection.insertOne(query);
+            res.send(result);
         })
     }
     finally{
