@@ -36,6 +36,7 @@ async function run(){
         const productCollection = client.db("techVIllage").collection("products");
         const userCollection = client.db("techVIllage").collection("users");
         const bookingCollection = client.db("techVIllage").collection("bookings");
+        const reportedCollection = client.db("techVIllage").collection("reportedItems");
 
         app.get("/jwt", async (req, res) => {
           const email = req.query.email;
@@ -140,6 +141,18 @@ async function run(){
             res.send(result);
         })
 
+        app.post('/report', async(req,res) =>{
+          const query = req.body;
+          const result = await reportedCollection.insertOne(query);
+          res.send(result);
+        })
+
+        app.get('/report', async(req, res) =>{
+          const query = {};
+          const result = await reportedCollection.find(query).toArray() ;
+          res.send(result);
+        })
+
         app.get("/products", async (req, res) => {
           const query = {};
           const result = await productCollection.find(query).toArray();
@@ -197,6 +210,13 @@ async function run(){
           const id = req.params.id;
           const query = { _id: ObjectId(id) };
           const result = await productCollection.deleteOne(query);
+          res.send(result);
+        });
+
+        app.delete("/report/:id",  async (req, res) => {
+          const id = req.params.id;
+          const query = { _id: ObjectId(id) };
+          const result = await reportedCollection.deleteOne(query);
           res.send(result);
         });
 
