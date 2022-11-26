@@ -84,7 +84,7 @@ async function run(){
             res.send(result);
         })
 
-        app.get('/category/:id',verifyJWT, async(req,res)=>{
+        app.get('/category/:id',async(req,res)=>{
             const id = req.params.id;
             const query = {_id: ObjectId(id)};
             const findCategory = await categoryCollection.findOne(query);
@@ -98,6 +98,19 @@ async function run(){
             const query = req.body;
             const result = await userCollection.insertOne(query);
             res.send(result);
+        })
+
+        app.put('/users/:id', async(req,res) =>{
+          const id = req.params.id;
+          const filter = {_id: ObjectId(id)};
+          const updateDoc = {
+            $set:{
+              isVerified: true
+            }
+          };
+          const options = {upsert: true};
+          const result = await userCollection.updateOne(filter,updateDoc,options)
+          res.send(result);
         })
 
         app.get('/user/:email', async(req,res) =>{
@@ -127,6 +140,12 @@ async function run(){
             res.send(result);
         })
 
+        app.get("/products", async (req, res) => {
+          const query = {};
+          const result = await productCollection.find(query).toArray();
+          res.send(result);
+        });
+
         app.post("/product", verifyJWT,verifySeller, async (req, res) => {
           const product = req.body;
           const result = await productCollection.insertOne(product);
@@ -137,6 +156,47 @@ async function run(){
           const email = req.query.email;
           const query = { email: email };
           const result = await productCollection.find(query).toArray();
+          res.send(result);
+        });
+
+        app.put("/product/:id", verifyJWT,verifySeller, async (req, res) => {
+          const id = req.params.id;
+          const filter = {_id: ObjectId(id)};
+          const updateDoc = { 
+            $set:{
+              status:'sold'
+            }
+           };
+          const options = {upsert: true};
+          const result = await productCollection.updateOne(
+            filter,
+            updateDoc,
+            options
+          );
+          res.send(result);
+        });
+
+        app.put("/productad/:id", verifyJWT,verifySeller, async (req, res) => {
+          const id = req.params.id;
+          const filter = {_id: ObjectId(id)};
+          const updateDoc = { 
+            $set:{
+              advertise: true
+            }
+           };
+          const options = {upsert: true};
+          const result = await productCollection.updateOne(
+            filter,
+            updateDoc,
+            options
+          );
+          res.send(result);
+        });
+
+        app.delete("/product/:id",  async (req, res) => {
+          const id = req.params.id;
+          const query = { _id: ObjectId(id) };
+          const result = await productCollection.deleteOne(query);
           res.send(result);
         });
 
