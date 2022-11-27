@@ -141,9 +141,10 @@ async function run(){
             res.send(result);
         })
 
-        app.put('/users/:id', async(req,res) =>{
-          const id = req.params.id;
-          const filter = {_id: ObjectId(id)};
+        app.put('/users/:email', async(req,res) =>{
+          const email = req.params.email;
+          console.log(email);
+          const filter = {email: email};
           const updateDoc = {
             $set:{
               isVerified: true
@@ -202,6 +203,17 @@ async function run(){
         app.post("/product", verifyJWT,verifySeller, async (req, res) => {
           const product = req.body;
           const result = await productCollection.insertOne(product);
+          const sellerEmail = product.email;
+          const query = { email: sellerEmail };
+          const findVerified = await userCollection.findOne(query);
+          if (findVerified.isVerified){
+            const updateDoc = {
+              $set:{
+                isVerified: true
+              }
+            }
+            const updateProduct = await productCollection.updateMany(query,updateDoc);
+          } 
           res.send(result);
         });
 
