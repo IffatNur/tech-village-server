@@ -5,6 +5,7 @@ const jwt = require('jsonwebtoken');
 const port = process.env.PORT || 5000;
 require('dotenv').config();
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
+const stripe = require("stripe")(process.env.STRIPE_SK);
 
 app.use(cors());
 app.use(express.json());
@@ -37,6 +38,28 @@ async function run(){
         const userCollection = client.db("techVIllage").collection("users");
         const bookingCollection = client.db("techVIllage").collection("bookings");
         const reportedCollection = client.db("techVIllage").collection("reportedItems");
+
+        app.post("/create-payment-intent", async (req, res) => {
+          const booking = req.body;
+          const price = booking.price;
+          const amount = price * 100;
+
+          const paymentIntent = await stripe.paymentIntents.create({
+            amount: amount,
+            currency: "usd",
+            payment_method_types: ["card"],
+          });
+          res.send({
+            clientSecret: paymentIntent.client_secret,
+          });
+        });
+
+        app.get('/payment/:id', async(req,res) =>{
+          const id = req.params.id;
+          const query = {_id: ObjectId(id)};
+          const result = await bookingCollection.findOne(query);
+          res.send(result);
+        })
 
         app.get("/jwt", async (req, res) => {
           const email = req.query.email;
