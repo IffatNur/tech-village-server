@@ -38,6 +38,7 @@ async function run(){
         const userCollection = client.db("techVIllage").collection("users");
         const bookingCollection = client.db("techVIllage").collection("bookings");
         const reportedCollection = client.db("techVIllage").collection("reportedItems");
+        const paymentCollection = client.db("techVIllage").collection("payments");
 
         app.post("/create-payment-intent", async (req, res) => {
           const booking = req.body;
@@ -47,17 +48,33 @@ async function run(){
           const paymentIntent = await stripe.paymentIntents.create({
             amount: amount,
             currency: "usd",
-            payment_method_types: ["card"],
+            "payment_method_types": ["card"],
           });
           res.send({
             clientSecret: paymentIntent.client_secret,
           });
         });
 
-        app.get('/payment/:id', async(req,res) =>{
-          const id = req.params.id;
-          const query = {_id: ObjectId(id)};
-          const result = await bookingCollection.findOne(query);
+        app.post('/payment', async(req,res) =>{
+          const query = req.body;
+          const result = await paymentCollection.insertOne(query);
+          const id = query.booking_id;
+          const filter = {_id: ObjectId(id)};
+          const updateDoc = {
+            $set: {
+              paid: true,
+              transactionId: query.transaction_id,
+            },
+          };
+          const updatedInfo = await bookingCollection.updateOne(filter, updateDoc);
+          const productId = query.product_id;
+          const productFilter = {_id: ObjectId(productId)};
+          const updateProduct = {
+            $set:{
+              paid: true
+            }
+          }
+          const updateProductInfo = await productCollection.updateOne(productFilter,updateProduct);
           res.send(result);
         })
 
